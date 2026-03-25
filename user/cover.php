@@ -16,7 +16,7 @@ $full_name = $_SESSION['full_name'] ?? 'Gebruiker';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dagboek - Kaftpagina</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="../css/styles.css">
 </head>
 <body class="cover-page">
     <div class="cover">

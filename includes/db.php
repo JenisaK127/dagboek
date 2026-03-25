@@ -1,25 +1,22 @@
-<?php
-// Database configuratie
-define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'dagboek_jen');
+<?php 
+    class DB {
+        public $pdo;
 
-// Verbinding maken
-try {
-    $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-    
-    if ($conn->connect_error) {
-        die("Verbindingsfout: " . $conn->connect_error);
+        public function __construct($db = "dagboek_jen", $user = "root", $pwd = "", $host = "localhost") {
+            try {
+                $this->pdo = new PDO("mysql:host=$host;dbname=$db", $user, $pwd);
+                $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            } catch (PDOException $e) {
+                echo "Connection failed: " . $e->getMessage();
+            }
+        }
+
+        public function run($sql, $placeholders = null) {
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute($placeholders); 
+            return $stmt;
+        }
     }
-    
-    $conn->set_charset("utf8mb4");
-} catch (Exception $e) {
-    die("Database fout: " . $e->getMessage());
-}
-
-// Sessie starten
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
 }
 ?>
+
