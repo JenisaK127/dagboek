@@ -1,6 +1,5 @@
 <?php
-require_once 'config.php';
-
+require_once '../includes/db.php';
 // Logout
 session_destroy();
 header('Location: index.php');

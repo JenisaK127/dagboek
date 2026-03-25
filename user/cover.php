@@ -1,5 +1,5 @@
 <?php
-require_once 'config.php';
+require_once '../includes/db.php';
 
 // Check of ingelogd
 if (!isset($_SESSION['user_id'])) {
