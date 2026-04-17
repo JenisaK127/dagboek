@@ -28,19 +28,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = 'Ongeldig email adres!';
     } else {
         // Check of gebruiker al bestaat
-        $stmt = $conn->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
-        $stmt->bind_param("ss", $username, $email);
-        $stmt->execute();
+        $db = new DB();
+        $stmt = $db->run("SELECT id FROM users WHERE username = ? OR email = ?", [$username, $email]);
         
-        if ($stmt->get_result()->num_rows > 0) {
+        if ($stmt->fetch()) {
             $error = 'Gebruikersnaam of email bestaat al!';
         } else {
             // Wachtwoord hashen en opslaan
             $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-            $stmt = $conn->prepare("INSERT INTO users (username, email, full_name, password) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("ssss", $username, $email, $full_name, $hashed_password);
+            $stmt = $db->run("INSERT INTO users (username, email, full_name, password) VALUES (?, ?, ?, ?)", [$username, $email, $full_name, $hashed_password]);
             
-            if ($stmt->execute()) {
+            if ($stmt->rowCount() > 0) {
                 $success = 'Account aangemaakt! Je kunt nu inloggen.';
                 // Redirect na 2 seconden
                 echo "<meta http-equiv='refresh' content='2;url=index.php'>";

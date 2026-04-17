@@ -1,5 +1,7 @@
 <?php
 require_once '../includes/db.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 // Als al ingelogd, ga naar kapstok
 if (isset($_SESSION['user_id'])) {
     header('Location: cover.php');
@@ -16,11 +18,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (empty($username) || empty($password)) {
             $error = 'Vul beide velden in!';
         } else {
-            $db = new DB();
-            $stmt = $db->run("SELECT id, password, full_name FROM users WHERE username = ?", [$username]);
+            $stmt = $conn->prepare("SELECT id, password, full_name FROM users WHERE username = ?");
+            $stmt->bind_param("s", $username);
+            $stmt->execute();
+            $result = $stmt->get_result();
             
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
-            if ($user) {
+            if ($result->num_rows === 1) {
+                $user = $result->fetch_assoc();
                 if (password_verify($password, $user['password'])) {
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['username'] = $username;
@@ -75,3 +79,4 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 </body>
 </html>
+

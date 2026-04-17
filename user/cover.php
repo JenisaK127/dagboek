@@ -21,7 +21,6 @@ $full_name = $_SESSION['full_name'] ?? 'Gebruiker';
 <body class="cover-page">
     <div class="cover">
         <div class="cover-header">
-            <!-- <div class="cover-icon">📖</div> -->
             <div class="cover-title">DAGBOEK</div>
             <div class="subtitle">Mijn persoonlijke herinneringen</div>
             <div class="owner-name"><?php echo htmlspecialchars($full_name); ?></div>
@@ -29,7 +28,7 @@ $full_name = $_SESSION['full_name'] ?? 'Gebruiker';
         
         <div class="cover-footer">
             <a href="dashboard.php" style="text-decoration: none;">
-                <button class="open-btn">OPEN →</button>
+                <button class="open-btn">OPEN </button>
             </a>
             <form action="logout.php" method="POST">
                 <button type="submit" class="logout-btn">Uitloggen</button>

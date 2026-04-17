@@ -22,16 +22,16 @@ $params = [$user_id];
 $types = "i";
 
 if ($search) {
-    $query .= " AND (title LIKE ? OR content LIKE ?)";
+    $query .= " AND (title LIKE ? OR content LIKE ? OR date LIKE ?)";
     $search_term = "%$search%";
-    $params = [$user_id, $search_term, $search_term];
-    $types = "iss";
+    $params = [$user_id, $search_term, $search_term, $search_term];
+} else {
+    $params = [$user_id];
 }
 
-$stmt = $conn->prepare($query);
-$stmt->bind_param($types, ...$params);
-$stmt->execute();
-$total_result = $stmt->get_result()->fetch_assoc();
+$db = new DB();
+$stmt = $db->run($query, $params);
+$total_result = $stmt->fetch(PDO::FETCH_ASSOC);
 $total_entries = $total_result['total'];
 $total_pages = ceil($total_entries / $entries_per_page);
 
@@ -46,21 +46,19 @@ $params = [$user_id];
 $types = "i";
 
 if ($search) {
-    $query .= " AND (title LIKE ? OR content LIKE ?)";
+    $query .= " AND (title LIKE ? OR content LIKE ? OR date LIKE ?)";
     $search_term = "%$search%";
-    $params = [$user_id, $search_term, $search_term];
-    $types = "iss";
+    $params = [$user_id, $search_term, $search_term, $search_term];
 }
 
-$query .= " ORDER BY date DESC LIMIT ? OFFSET ?";
-$params[] = $entries_per_page;
-$params[] = $offset;
-$types .= "ii";
+$limit = (int)$entries_per_page;
+$off = (int)$offset;
 
-$stmt = $conn->prepare($query);
-$stmt->bind_param($types, ...$params);
-$stmt->execute();
-$entries = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+$query .= " ORDER BY date ASC LIMIT $limit OFFSET $off";
+
+$db = new DB();
+$stmt = $db->run($query, $params);
+$entries = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -73,6 +71,12 @@ $entries = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 </head>
 <body>
     <div class="container">
+        <?php if (isset($_GET['deleted'])): ?>
+            <div class="success-message" style="background-color: #d4edda; color: #155724; padding: 12px; border: 1px solid #c3e6cb; border-radius: 4px; margin-bottom: 20px;">
+                Entry succesvol verwijderd!
+            </div>
+        <?php endif; ?>
+
         <div class="header">
             <div>
                 <h1> Dagboek</h1>
@@ -86,8 +90,8 @@ $entries = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         <div class="search-section">
             <form class="search-form" method="GET">
                 <input type="text" name="search" placeholder="Zoeken in je dagboek..." value="<?php echo htmlspecialchars($search); ?>">
-                <button type="submit" class="btn-primary">🔍 Zoeken</button>
-                <?php if ($search): ?>
+                <button type="submit" class="btn-primary"> Zoeken</button>
+                <?php if ($search): ?>de search filter de 
                     <a href="dashboard.php">Wissen</a>
                 <?php endif; ?>
             </form>
@@ -102,19 +106,38 @@ $entries = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             </div>
         <?php else: ?>
             <div class="entries">
-                <?php foreach ($entries as $entry): ?>
-                    <div class="entry">
-                        <div class="entry-header">
-                            <span class="entry-date"><?php echo date('d M Y', strtotime($entry['date'])); ?></span>
-                        </div>
-                        <div class="entry-title"><?php echo htmlspecialchars($entry['title']); ?></div>
-                        <div class="entry-preview"><?php echo htmlspecialchars(substr(strip_tags($entry['content']), 0, 150)) . '...'; ?></div>
-                        <div class="entry-actions">
-                            <a href="entry.php?id=<?php echo $entry['id']; ?>" class="edit-btn">✏️ Bewerken</a>
-                            <a href="delete_entry.php?id=<?php echo $entry['id']; ?>" class="delete-btn" onclick="return confirm('Zeker weten?')">🗑️ Verwijderen</a>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+               <?php foreach ($entries as $entry): ?>
+    <div class="entry">
+        <div class="entry-header">
+            <span class="entry-date">
+                <?php echo date('d M Y', strtotime($entry['date'])); ?>
+            </span>
+        </div>
+
+        <div class="entry-title">
+            <?php echo htmlspecialchars($entry['title']); ?>
+        </div>
+
+        <div class="entry-preview">
+            <?php 
+                $preview = substr(strip_tags($entry['content']), 0, 150);
+                echo htmlspecialchars($preview) . '...'; 
+            ?>
+        </div>
+
+        <div class="entry-actions">
+            <a href="entry.php?id=<?php echo $entry['id']; ?>" class="edit-btn">
+                Bewerken
+            </a>
+
+            <a href="../includes/delete_entry.php?id=<?php echo $entry['id']; ?>" 
+               class="delete-btn" 
+               onclick="return confirm('Weet u zeker dat u deze entry wilt verwijderen?')">
+               Verwijderen
+            </a>
+        </div>
+    </div>
+<?php endforeach; ?>
             </div>
             
             <?php if ($total_pages > 1): ?>
